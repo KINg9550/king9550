@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>King Daniel Site</title>
+</head>
+<body>
+  <h1>🔥 KING DANIEL SITE 🔥</h1>
+
+  <h2>User Login</h2>
+  <input id="userPin" placeholder="Enter PIN">
+  <button onclick="login()">Login</button>
+
+  <h2>Admin Login</h2>
+  <input id="adminPin" placeholder="Admin PIN">
+  <button onclick="adminLogin()">Login</button>
+
+  <div id="adminPanel" style="display:none;">
+    <h3>Add Post</h3>
+    <input id="postText" placeholder="Write something">
+    <input type="file" id="image">
+    <button onclick="addPost()">Post</button>
+
+    <h3>Add Link</h3>
+    <input id="linkName" placeholder="Name">
+    <input id="linkUrl" placeholder="URL">
+    <button onclick="addLink()">Add</button>
+  </div>
+
+  <div id="content"></div>
+
+<script>
+async function login() {
+  const pin = document.getElementById("userPin").value;
+
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ pin })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    let html = "<h2>Posts</h2>";
+    data.posts.forEach(p => {
+      html += `<p>${p.text}</p>`;
+      if (p.image) html += `<img src="${p.image}" width="200"/>`;
+    });
+
+    html += "<h2>Links</h2>";
+    data.links.forEach(l => {
+      html += `<p><a href="${l.url}" target="_blank">${l.name}</a></p>`;
+    });
+
+    document.getElementById("content").innerHTML = html;
+  } else {
+    alert("Wrong PIN");
+  }
+}
+
+async function adminLogin() {
+  const pin = document.getElementById("adminPin").value;
+
+  const res = await fetch("/admin-login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ pin })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("Wrong admin PIN");
+  }
+}
+
+async function addPost() {
+  const formData = new FormData();
+  formData.append("post", document.getElementById("postText").value);
+  formData.append("image", document.getElementById("image").files[0]);
+
+  await fetch("/add-post", {
+    method: "POST",
+    body: formData
+  });
+
+  alert("Post added!");
+}
+
+async function addLink() {
+  await fetch("/add-link", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      name: document.getElementById("linkName").value,
+      url: document.getElementById("linkUrl").value
+    })
+  });
+
+  alert("Link added!");
+}
+</script>
+
+</body>
+</html>
